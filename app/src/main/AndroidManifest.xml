@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Orgs">
         <activity
             android:name=".ui.activity.DetalhesProdutoActivity"
-            android:theme="@style/Theme.Orgs.NoActionBar" />
+             />
         <activity android:name=".ui.activity.FormularioProdutoActivity" />
         <activity
             android:name=".ui.activity.ListaProdutosActivity"
