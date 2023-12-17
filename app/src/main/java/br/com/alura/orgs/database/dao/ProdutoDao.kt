@@ -1,28 +1,22 @@
 package br.com.alura.orgs.database.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import br.com.alura.orgs.model.Produto
-
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProdutoDao {
 
     @Query("SELECT * FROM Produto")
-    fun buscaTodos() : List<Produto>
+    fun buscaTodos(): Flow<List<Produto>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun salva (vararg produto: Produto)
+    suspend fun salva(vararg produto: Produto)
 
     @Delete
-    fun remove(produto: Produto)
-
+    suspend fun remove(produto: Produto)
 
     @Query("SELECT * FROM Produto WHERE id = :id")
-    fun buscaPorId(id: Long) : Produto?
+    fun buscaPorId(id: Long): Flow<Produto?>
 
 }
