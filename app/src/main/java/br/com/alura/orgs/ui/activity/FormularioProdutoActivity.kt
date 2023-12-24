@@ -1,19 +1,15 @@
 package br.com.alura.orgs.ui.activity
 
 import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.database.AppDatabase
 import br.com.alura.orgs.database.dao.ProdutoDao
 import br.com.alura.orgs.databinding.ActivityFormularioProdutoBinding
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
-import br.com.alura.orgs.preferences.dataStore
-import br.com.alura.orgs.preferences.usuarioLogadoPreferences
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -38,20 +34,13 @@ class FormularioProdutoActivity : UsuarioBaseActivity() {
         title = "Cadastrar produto"
         configuraBotaoSalvar()
         binding.activityFormularioProdutoImagem.setOnClickListener {
-            FormularioImagemDialog(this)
-                .mostra(url) { imagem ->
-                    url = imagem
-                    binding.activityFormularioProdutoImagem.tentaCarregarImagem(url)
-                }
-        }
-        tentaCarregarProduto()
-        lifecycleScope.launch {
-            usuario
-                .filterNotNull()
-                .collect {
-                    Log.i("FormularioProduto", "onCreate: $it")
+            FormularioImagemDialog(this).mostra(url) { imagem ->
+                url = imagem
+                binding.activityFormularioProdutoImagem.tentaCarregarImagem(url)
             }
         }
+        tentaCarregarProduto()
+
     }
 
     private fun tentaCarregarProduto() {
@@ -76,29 +65,27 @@ class FormularioProdutoActivity : UsuarioBaseActivity() {
 
     private fun preencheCampos(produto: Produto) {
         url = produto.imagem
-        binding.activityFormularioProdutoImagem
-            .tentaCarregarImagem(produto.imagem)
-        binding.activityFormularioProdutoNome
-            .setText(produto.nome)
-        binding.activityFormularioProdutoDescricao
-            .setText(produto.descricao)
-        binding.activityFormularioProdutoValor
-            .setText(produto.valor.toPlainString())
+        binding.activityFormularioProdutoImagem.tentaCarregarImagem(produto.imagem)
+        binding.activityFormularioProdutoNome.setText(produto.nome)
+        binding.activityFormularioProdutoDescricao.setText(produto.descricao)
+        binding.activityFormularioProdutoValor.setText(produto.valor.toPlainString())
     }
 
     private fun configuraBotaoSalvar() {
         val botaoSalvar = binding.activityFormularioProdutoBotaoSalvar
 
         botaoSalvar.setOnClickListener {
-            val produtoNovo = criaProduto()
             lifecycleScope.launch {
-                produtoDao.salva(produtoNovo)
-                finish()
+                usuario.value?.let { usuario ->
+                    val produtoNovo = criaProduto(usuario.id)
+                    produtoDao.salva(produtoNovo)
+                    finish()
+                }
             }
         }
     }
 
-    private fun criaProduto(): Produto {
+    private fun criaProduto(usuarioId: String): Produto {
         val campoNome = binding.activityFormularioProdutoNome
         val nome = campoNome.text.toString()
         val campoDescricao = binding.activityFormularioProdutoDescricao
@@ -116,7 +103,8 @@ class FormularioProdutoActivity : UsuarioBaseActivity() {
             nome = nome,
             descricao = descricao,
             valor = valor,
-            imagem = url
+            imagem = url,
+            usuarioId = usuarioId
         )
     }
 
